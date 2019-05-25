@@ -27,13 +27,14 @@ app = Flask(__name__)
 # Load the Google Login API Client ID
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
-APPLICATION_NAME = "Restaurant Menu Application"
+APPLICATION_NAME = "Restaurant Menu App"
 
 # Create a database session and connect to the database
 engine = create_engine('sqlite:///restaurantmenulist.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
 
 # Create anti-forgery state token
 @app.route('/login')
@@ -42,6 +43,7 @@ def showLogin():
                     for x in xrange(32))
     login_session['state'] = state
     return render_template('login.html', STATE=state)
+
 
 # Connect to the Google Login oAuth method
 @app.route('/gconnect', methods=['POST'])
@@ -159,6 +161,7 @@ def getUserID(email):
     except Exception:
         return None
 
+
 # Disconnect - Revoke current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
@@ -171,9 +174,10 @@ def gdisconnect():
         return response
     print 'In gdisconnect access token is %s', access_token
     print 'User name is: '
-    print login_session['username']
+    print login_session['username'].encode('utf-8').strip()
+
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s'\
-        % login_session['access_token']
+        % str(login_session['access_token'])
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print 'result is '
@@ -192,6 +196,15 @@ def gdisconnect():
             'Failed to revoke token for given user.', 400))
         response.headers['Content-Type'] = 'application/json'
         return response
+
+
+# Disconnect - Disconnects and redirects to index
+@app.route('/disconnect')
+@app.route('/restaurants/disconnect')
+def disconnect():
+    gdisconnect()
+    return redirect(url_for('showRestaurants'))
+
 
 # JSON APIs to view Restaurant Information
 @app.route('/restaurants/<int:restaurant_id>/menu/JSON')
@@ -212,6 +225,7 @@ def menuItemJSON(restaurant_id, menu_id):
 def restaurantsJSON():
     restaurants = session.query(Restaurant).all()
     return jsonify(restaurants=[r.serialize for r in restaurants])
+
 
 # Show all restaurants
 @app.route('/')
@@ -263,6 +277,7 @@ def editRestaurant(restaurant_id):
         return render_template('editRestaurant.html',
                                restaurant=editedRestaurant)
 
+
 # Delete a restaurant
 @app.route('/restaurant/<int:restaurant_id>/delete/', methods=['GET', 'POST'])
 def deleteRestaurant(restaurant_id):
@@ -285,6 +300,7 @@ def deleteRestaurant(restaurant_id):
         return render_template('deleteRestaurant.html',
                                restaurant=restaurantToDelete)
 
+
 # Display the Menu Items
 @app.route('/restaurants/<int:restaurant_id>/menu')
 def restaurantMenu(restaurant_id):
@@ -301,6 +317,7 @@ def restaurantMenu(restaurant_id):
                                items=items,
                                restaurant_id=restaurant_id,
                                creator=creator)
+
 
 # Create new Menu Item
 @app.route('/restaurant/<int:restaurant_id>/new/', methods=['GET', 'POST'])
@@ -323,6 +340,7 @@ def newMenuItem(restaurant_id):
         return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
     else:
         return render_template('newmenuitem.html', restaurant_id=restaurant_id)
+
 
 # Edit a menu item
 @app.route('/restaurants/<int:restaurant_id>/<int:menu_id>/edit',
@@ -349,6 +367,7 @@ def editMenuItem(restaurant_id, menu_id):
         return render_template('editmenuitem.html',
                                restaurant_id=restaurant_id,
                                menu_id=menu_id, item=editedItem)
+
 
 # Delete a menu item
 @app.route('/restaurants/<int:restaurant_id>/<int:menu_id>/delete',
