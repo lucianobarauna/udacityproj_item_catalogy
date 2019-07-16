@@ -37,7 +37,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-idUser = "Grader Udacity" # replaces session login
+idUser = 1 # replaces session login
 
 # Create anti-forgery state token
 
