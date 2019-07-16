@@ -25,8 +25,8 @@ from oauth2client.client import FlowExchangeError
 app = Flask(__name__)
 
 # Load the Google Login API Client ID
-CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+# CLIENT_ID = json.loads(
+#     open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "Restaurant Menu App"
 
 # Create a database session and connect to the database
