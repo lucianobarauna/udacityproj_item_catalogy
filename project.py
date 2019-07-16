@@ -30,12 +30,14 @@ app = Flask(__name__)
 APPLICATION_NAME = "Restaurant Menu App"
 
 # Create a database session and connect to the database
-engine = create_engine('sqlite:///restaurantmenulist.db')
+# Dev
+# engine = create_engine('sqlite:///restaurantmenulist.db')
+engine = create_engine('URL_DATA')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-idUser = 1
+idUser = "Grader Udacity" # replaces session login
 
 # Create anti-forgery state token
 
