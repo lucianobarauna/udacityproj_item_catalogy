@@ -35,13 +35,16 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+idUser = 1
 
 # Create anti-forgery state token
+
 @app.route('/login')
 def showLogin():
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                    for x in xrange(32))
-    login_session['state'] = state
+    # Remove Oauth
+    # state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+    #                 for x in xrange(32))
+    # login_session['state'] = state
     return render_template('login.html', STATE=state)
 
 
@@ -232,22 +235,29 @@ def restaurantsJSON():
 @app.route('/restaurants/')
 def showRestaurants():
     restaurants = session.query(Restaurant).order_by(asc(Restaurant.name))
-    if 'username' not in login_session:
-        return render_template('publicrestaurantslist.html',
-                               restaurants=restaurants)
-    else:
-        return render_template('restaurantslist.html', restaurants=restaurants)
+    # Remove Oauth
+    # if 'username' not in login_session:
+    #     return render_template('publicrestaurantslist.html',
+    #                            restaurants=restaurants)
+    # else:
+    #     return render_template('restaurantslist.html', restaurants=restaurants)
+    return render_template('restaurantslist.html', restaurants=restaurants)
 
 
 # Create a new restaurant
 @app.route('/restaurant/new/', methods=['GET', 'POST'])
 def newRestaurant():
-    if 'username' not in login_session:
-        return redirect('/login')
+    # Remove Oauth
+    # if 'username' not in login_session:
+    #     return redirect('/login')
 
     if request.method == 'POST':
+        # Remove Oauth
+        # newRestaurant = Restaurant(name=request.form['name'],
+        #                            user_id=login_session['user_id'])
+        ###
         newRestaurant = Restaurant(name=request.form['name'],
-                                   user_id=login_session['user_id'])
+                                   user_id=idUser)
         session.add(newRestaurant)
         flash('New Restaurant %s Successfully Created' % newRestaurant.name)
         session.commit()
@@ -259,11 +269,15 @@ def newRestaurant():
 # Edit restaurant name
 @app.route('/restaurant/<int:restaurant_id>/edit/', methods=['GET', 'POST'])
 def editRestaurant(restaurant_id):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # Remove Oauth
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     editedRestaurant = session.query(Restaurant)\
         .filter_by(id=restaurant_id).one()
-    if editedRestaurant.user_id != login_session['user_id']:
+    # Remove Oauth
+    # if editedRestaurant.user_id != login_session['user_id']:
+    ###
+    if editedRestaurant.user_id != idUser:
         return "<script>function myFunction()\
             {alert('You are not authorized to edit this restaurant.\
             Please create your own restaurant in order to edit.');}\
@@ -281,11 +295,14 @@ def editRestaurant(restaurant_id):
 # Delete a restaurant
 @app.route('/restaurant/<int:restaurant_id>/delete/', methods=['GET', 'POST'])
 def deleteRestaurant(restaurant_id):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # Remove Oauth
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     restaurantToDelete = session.query(Restaurant)\
         .filter_by(id=restaurant_id).one()
-    if restaurantToDelete.user_id != login_session['user_id']:
+    # Remove Oauth
+    # if restaurantToDelete.user_id != login_session['user_id']:
+    if restaurantToDelete.user_id != idUser:
         return "<script>function myFunction()\
             {alert('You are not authorized to delete this restaurant.\
             Please create your own restaurant in order to delete.');}\
@@ -307,12 +324,18 @@ def restaurantMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     creator = getUserInfo(restaurant.user_id)
     items = session.query(MenuItem).filter_by(restaurant_id=restaurant.id)
-    if 'username' not in login_session\
-            or creator.id != login_session['user_id']:
-        return render_template('publicmenu.html', items=items,
-                               restaurant=restaurant, creator=creator)
-    else:
-        return render_template('menu.html',
+    # Remove Oauth
+    # if 'username' not in login_session\
+    #         or creator.id != login_session['user_id']:
+    #     return render_template('publicmenu.html', items=items,
+    #                            restaurant=restaurant, creator=creator)
+    # else:
+    #     return render_template('menu.html',
+    #                            restaurant=restaurant,
+    #                            items=items,
+    #                            restaurant_id=restaurant_id,
+    #                            creator=creator)
+    return render_template('menu.html',
                                restaurant=restaurant,
                                items=items,
                                restaurant_id=restaurant_id,
@@ -322,8 +345,9 @@ def restaurantMenu(restaurant_id):
 # Create new Menu Item
 @app.route('/restaurant/<int:restaurant_id>/new/', methods=['GET', 'POST'])
 def newMenuItem(restaurant_id):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # Remove Oauth
+    # if 'username' not in login_session:
+    #     return redirect('/login')
 
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
 
@@ -346,8 +370,9 @@ def newMenuItem(restaurant_id):
 @app.route('/restaurants/<int:restaurant_id>/<int:menu_id>/edit',
            methods=['GET', 'POST'])
 def editMenuItem(restaurant_id, menu_id):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # Remove Oauth
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     editedItem = session.query(MenuItem).filter_by(id=menu_id).one()
     if request.method == 'POST':
@@ -373,8 +398,8 @@ def editMenuItem(restaurant_id, menu_id):
 @app.route('/restaurants/<int:restaurant_id>/<int:menu_id>/delete',
            methods=['GET', 'POST'])
 def deleteMenuItem(restaurant_id, menu_id):
-    if 'username' not in login_session:
-        return redirect('/login')
+    # if 'username' not in login_session:
+    #     return redirect('/login')
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     itemToDelete = session.query(MenuItem).filter_by(id=menu_id).one()
     if request.method == 'POST':
